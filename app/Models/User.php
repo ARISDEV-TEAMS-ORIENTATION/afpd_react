@@ -18,20 +18,54 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    'nom',
+    'prenom',
+    'email',
+    'password',
+    'telephone',
+    'date_inscription',
+    'statut',
+    'role_id'
+];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+protected $hidden = [
+    'password',
+    'remember_token',
+];
+
+     // Événements organisés
+    public function evenements()
+    {
+        return $this->hasMany(Evenement::class, 'id_responsable');
+    }
+
+    // Annonces publiées
+    public function annonces()
+    {
+        return $this->hasMany(Annonce::class, 'id_auteur');
+    }
+
+    // Rapports créés
+    public function rapports()
+    {
+        return $this->hasMany(Rapport::class, 'id_createur');
+    }
+
+    // Notifications reçues
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    // Journal
+    public function journalActivites()
+    {
+        return $this->hasMany(JournalActivite::class);
+    }
+    public function role()
+{
+    return $this->belongsTo(Role::class);
+}
 
     /**
      * Get the attributes that should be cast.
@@ -41,7 +75,6 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
