@@ -32,4 +32,14 @@ class AdminController extends Controller
             'message' => 'Utilisateur supprimé'
         ]);
     }
+
+    // RÉCUPÉRER UTILISATEURS EN ATTENTE
+    public function pendingUsers()
+    {
+        $users = User::with('role')
+            ->where('statut', 'pending')
+            ->get();
+
+        return response()->json($users);
+    }
 }

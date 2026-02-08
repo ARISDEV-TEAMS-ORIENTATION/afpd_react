@@ -1,4 +1,3 @@
--- Active: 1770239958511@@127.0.0.1@3306@adpd_db
 <?php
 
 use Illuminate\Database\Migrations\Migration;

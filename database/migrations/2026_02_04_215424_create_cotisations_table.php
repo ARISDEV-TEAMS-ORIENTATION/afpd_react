@@ -15,10 +15,10 @@ return new class extends Migration
     $table->id();
     $table->foreignId('user_id')->constrained()->cascadeOnDelete();
     $table->decimal('montant',10,2);
-    $table->date('date_paiement');
-    $table->string('periode');
-    $table->string('mode_paiement');
-    $table->string('statut_paiement');
+    // $table->date('date_paiement');
+    // $table->string('periode');
+    // $table->string('mode_paiement');
+    // $table->string('statut_paiement');
     $table->timestamps();
 });
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Evenement extends Model
@@ -31,4 +32,3 @@ class Evenement extends Model
         )->withPivot('presence')->withTimestamps();
     }
 }
-

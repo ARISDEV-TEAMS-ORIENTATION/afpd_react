@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class JournalActivite extends Model
@@ -19,4 +20,3 @@ class JournalActivite extends Model
         return $this->belongsTo(User::class);
     }
 }
-
