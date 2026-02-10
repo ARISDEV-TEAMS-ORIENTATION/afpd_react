@@ -21,6 +21,15 @@ class CotisationController extends Controller
 
     public function store(Request $request)
     {
+        // $actor = $request->user();
+
+        // $allowedId = env('COTISATION_COLLECTOR_ID');
+        // $isAdmin = optional($actor->role)->nom_role === 'Tresoriere';
+
+        // if (! $actor || (!empty($allowedId) && $actor->id != (int) $allowedId) && ! $isAdmin) {
+        //     return response()->json(['message' => 'Non autorisé'], 403);
+        // }
+
         $data = $request->validate([
             'user_id' => 'required|exists:users,id',
             'montant' => 'required|numeric',
