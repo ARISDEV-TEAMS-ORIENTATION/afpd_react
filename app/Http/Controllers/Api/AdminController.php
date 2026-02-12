@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Evenement;
 use App\Models\User;
 
 class AdminController extends Controller
@@ -41,5 +42,45 @@ class AdminController extends Controller
             ->get();
 
         return response()->json($users);
+    }
+
+    // VALIDER ÉVÉNEMENT
+    public function validateEvent($id)
+    {
+        $event = Evenement::findOrFail($id);
+
+        $event->update([
+            'statut' => Evenement::STATUT_ACTIF
+        ]);
+
+        return response()->json([
+            'message' => 'Événement validé',
+            'evenement' => $event
+        ]);
+    }
+
+    // REFUSER ÉVÉNEMENT
+    public function rejectEvent($id)
+    {
+        $event = Evenement::findOrFail($id);
+
+        $event->update([
+            'statut' => Evenement::STATUT_REFUSE
+        ]);
+
+        return response()->json([
+            'message' => 'Événement refusé',
+            'evenement' => $event
+        ]);
+    }
+
+    // RÉCUPÉRER LES ÉVÉNEMENTS EN ATTENTE
+    public function pendingEvents()
+    {
+        $events = Evenement::with('responsable')
+            ->where('statut', Evenement::STATUT_PENDING)
+            ->get();
+
+        return response()->json($events);
     }
 }

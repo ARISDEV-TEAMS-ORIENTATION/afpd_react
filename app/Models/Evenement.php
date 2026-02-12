@@ -9,6 +9,10 @@ class Evenement extends Model
 {
     use HasFactory;
 
+    public const STATUT_PENDING = 'pending';
+    public const STATUT_ACTIF = 'actif';
+    public const STATUT_REFUSE = 'refuse';
+
     protected $fillable = [
         'titre',
         'description',
