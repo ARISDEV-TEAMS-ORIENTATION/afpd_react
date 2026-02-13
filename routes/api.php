@@ -29,3 +29,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('cotisations', CotisationController::class);
     Route::apiResource('users', UserController::class);
     Route::get('/roles', [RoleController::class,'index']);
+    Route::post('/roles', [RoleController::class,'store']);
