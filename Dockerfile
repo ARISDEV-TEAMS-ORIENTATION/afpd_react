@@ -10,9 +10,12 @@ RUN apt-get update \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader
+RUN composer install --no-dev --no-scripts --no-interaction --no-progress --prefer-dist --optimize-autoloader
 
 COPY . .
+
+RUN composer dump-autoload --optimize --no-interaction \
+    && php artisan package:discover --ansi
 
 RUN mkdir -p storage bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
