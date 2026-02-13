@@ -19,6 +19,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/admin/validate-event/{id}', [AdminController::class,'validateEvent']);
     Route::put('/admin/reject-event/{id}', [AdminController::class,'rejectEvent']);
     Route::get('/admin/pending-events', [AdminController::class,'pendingEvents']);
+    Route::get('/admin/evenements/pending', [EvenementController::class,'pendingForAdmin']);
 
     Route::post('/logout', [AuthController::class,'logout']);
 

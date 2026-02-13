@@ -19,8 +19,13 @@ class Evenement extends Model
         'date_debut',
         'date_fin',
         'lieu',
+        'image',
         'id_responsable',
         'statut'
+    ];
+
+    protected $appends = [
+        'image_url'
     ];
 
     public function responsable()
@@ -34,5 +39,25 @@ class Evenement extends Model
             User::class,
             'inscription_evenements'
         )->withPivot('presence')->withTimestamps();
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->image) {
+            return null;
+        }
+
+        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
+            return $this->image;
+        }
+
+        $relativeUrl = '/storage/' . ltrim($this->image, '/');
+        $request = request();
+
+        if ($request) {
+            return rtrim($request->getSchemeAndHttpHost(), '/') . $relativeUrl;
+        }
+
+        return $relativeUrl;
     }
 }
