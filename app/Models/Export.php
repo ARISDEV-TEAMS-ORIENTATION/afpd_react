@@ -5,29 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Rapport extends Model
+class Export extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'type_rapport',
-        'periode',
-        'chemin_fichier',
+        'type_export',
         'format',
-        'statut_generation',
+        'filtres',
+        'file_path',
+        'generated_by',
         'generated_at',
-        'id_createur',
     ];
 
     protected function casts(): array
     {
         return [
+            'filtres' => 'array',
             'generated_at' => 'datetime',
         ];
     }
 
-    public function createur()
+    public function generatedBy()
     {
-        return $this->belongsTo(User::class, 'id_createur');
+        return $this->belongsTo(User::class, 'generated_by');
     }
 }

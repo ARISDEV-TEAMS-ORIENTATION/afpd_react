@@ -1,0 +1,62 @@
+{
+  "info": {
+    "name": "AFPD API Lite",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "0cb878ae-71d9-4d4e-a9ba-58d0c35c76e6"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "adminEmail",
+      "value": "test@example.com"
+    },
+    {
+      "key": "adminPassword",
+      "value": "password"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me"
+          }
+        }
+      ]
+    }
+  ]
+}

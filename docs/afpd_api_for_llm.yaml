@@ -1,0 +1,442 @@
+meta:
+  project: AFPD Backend
+  framework: Laravel 12 + Sanctum
+  generated_on: "2026-03-01"
+  file_purpose: "Contrat API lisible par humains + LLM pour client React"
+  recommended_extension: ".yaml"
+
+react_client_usage:
+  base_url: "http://127.0.0.1:8000"
+  auth:
+    token_type: Bearer
+    login_endpoint: "POST /api/login"
+    token_storage: "localStorage ou cookie sécurisé côté front"
+    required_header: "Authorization: Bearer <token>"
+    public_endpoints:
+      - "POST /api/register"
+      - "POST /api/login"
+  common_headers:
+    json:
+      - "Content-Type: application/json"
+      - "Accept: application/json"
+    auth_json:
+      - "Authorization: Bearer <token>"
+      - "Content-Type: application/json"
+      - "Accept: application/json"
+  error_model:
+    "401": "non authentifié"
+    "403": "rôle non autorisé"
+    "404": "ressource introuvable"
+    "422": "erreurs de validation"
+  react_patterns:
+    api_client_js: |
+      import axios from 'axios';
+
+      export const api = axios.create({
+        baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000',
+        headers: { Accept: 'application/json' },
+      });
+
+      api.interceptors.request.use((config) => {
+        const token = localStorage.getItem('token');
+        if (token) config.headers.Authorization = `Bearer ${token}`;
+        return config;
+      });
+
+      export const unwrap = (res) => res.data;
+    auth_flow_js: |
+      // 1) login
+      const { data } = await api.post('/api/login', { email, password });
+      localStorage.setItem('token', data.token);
+
+      // 2) récupérer utilisateur courant
+      const me = await api.get('/api/me').then(unwrap);
+
+      // 3) logout
+      await api.post('/api/logout');
+      localStorage.removeItem('token');
+    validation_tip: "toujours afficher response.data.errors quand status=422"
+
+route_groups:
+  - group: Auth (Public)
+    endpoints:
+      - method: POST
+        path: /api/register
+        auth: false
+        body:
+          nom: "required|string"
+          email: "required|email|unique"
+          password: "required|min:6"
+          prenom: "optional|string"
+          telephone: "optional|string"
+      - method: POST
+        path: /api/login
+        auth: false
+        body:
+          email: "required"
+          password: "required"
+      - method: POST
+        path: /api/logout
+        auth: true
+
+  - group: Profile
+    endpoints:
+      - method: GET
+        path: /api/me
+        auth: true
+      - method: PATCH
+        path: /api/me
+        auth: true
+        body:
+          nom: "optional|required|string"
+          prenom: "optional|nullable|string"
+          telephone: "optional|nullable|string"
+          email: "optional|required|email|unique:users,email,<current_user_id>"
+      - method: PATCH
+        path: /api/me/password
+        auth: true
+        body:
+          current_password: "required|string"
+          password: "required|string|min:6|confirmed"
+          password_confirmation: "required|string"
+      - method: DELETE
+        path: /api/me/tokens/{tokenId}
+        auth: true
+        path_params:
+          tokenId: int
+
+  - group: Dashboard
+    endpoints:
+      - method: GET
+        path: /api/dashboard/overview
+        auth: true
+        query:
+          month: "optional|format YYYY-MM"
+      - method: GET
+        path: /api/dashboard/cotisations/monthly
+        auth: true
+        query:
+          months: "optional|int 1..24 (default 6)"
+      - method: GET
+        path: /api/dashboard/evenements/upcoming
+        auth: true
+        query:
+          limit: "optional|int 1..50"
+      - method: GET
+        path: /api/dashboard/alerts
+        auth: true
+        query:
+          month: "optional|format YYYY-MM"
+
+  - group: Notifications
+    endpoints:
+      - method: GET
+        path: /api/notifications
+        auth: true
+        query:
+          lu: "optional|boolean"
+          all: "optional|boolean"
+      - method: POST
+        path: /api/notifications
+        auth: true
+        roles: [Presidente, Secretaire, Tresoriere]
+        body:
+          message: "required|string"
+          user_id: "optional|int|exists"
+          user_ids: "optional|array<int>|exists"
+      - method: PATCH
+        path: /api/notifications/{id}/read
+        auth: true
+        path_params:
+          id: int
+      - method: PATCH
+        path: /api/notifications/read-all
+        auth: true
+
+  - group: Admin (role=Presidente)
+    endpoints:
+      - { method: PUT, path: /api/admin/validate-user/{id}, auth: true, roles: [Presidente] }
+      - { method: DELETE, path: /api/admin/reject-user/{id}, auth: true, roles: [Presidente] }
+      - { method: GET, path: /api/admin/pending-users, auth: true, roles: [Presidente] }
+      - { method: PUT, path: /api/admin/validate-event/{id}, auth: true, roles: [Presidente] }
+      - { method: PUT, path: /api/admin/reject-event/{id}, auth: true, roles: [Presidente] }
+      - { method: GET, path: /api/admin/pending-events, auth: true, roles: [Presidente] }
+      - { method: GET, path: /api/admin/evenements/pending, auth: true, roles: [Presidente] }
+
+  - group: Roles
+    endpoints:
+      - method: GET
+        path: /api/roles
+        auth: true
+      - method: POST
+        path: /api/roles
+        auth: true
+        roles: [Presidente]
+        body:
+          nom_role: "required|string|unique"
+          description: "optional|nullable|string"
+
+  - group: Users
+    endpoints:
+      - method: GET
+        path: /api/users
+        auth: true
+        roles: [Presidente, Secretaire]
+        query:
+          search: "optional|string"
+          role_id: "optional|int"
+          statut: "optional|string"
+          with_deleted: "optional|boolean"
+      - method: POST
+        path: /api/users
+        auth: true
+        roles: [Presidente, Secretaire]
+        body:
+          nom: "required|string"
+          prenom: "optional|nullable|string"
+          email: "required|email|unique"
+          password: "required|min:6"
+          telephone: "optional|nullable|string"
+          role_id: "optional|exists"
+          statut: "optional|nullable|string"
+      - method: GET
+        path: /api/users/{user}
+        auth: true
+        roles: [Presidente, Secretaire]
+      - method: PATCH
+        path: /api/users/{user}
+        auth: true
+        roles: [Presidente, Secretaire]
+      - method: DELETE
+        path: /api/users/{user}
+        auth: true
+        roles: [Presidente, Secretaire]
+        note: "soft delete (désactivation)"
+      - method: GET
+        path: /api/users/{id}/cotisations
+        auth: true
+        roles: [Presidente, Secretaire, Tresoriere]
+      - method: GET
+        path: /api/users/{id}/participations
+        auth: true
+        roles: [Presidente, Secretaire, CommunityManager]
+      - method: PATCH
+        path: /api/users/{id}/status
+        auth: true
+        roles: [Presidente, Secretaire]
+        body:
+          statut: "required|one_of[pending,actif,inactif,suspendu]"
+      - method: PATCH
+        path: /api/users/{id}/role
+        auth: true
+        roles: [Presidente]
+        body:
+          role_id: "required|exists:roles,id"
+
+  - group: Cotisations
+    endpoints:
+      - method: GET
+        path: /api/cotisations
+        auth: true
+        roles: [Presidente, Tresoriere]
+        query:
+          user_id: "optional|int"
+          status: "optional|one_of[en_attente,paye,partiel,annule]"
+          from: "optional|date"
+          to: "optional|date"
+      - method: POST
+        path: /api/cotisations
+        auth: true
+        roles: [Presidente, Tresoriere]
+        body:
+          user_id: "required|exists"
+          montant: "required|numeric|min:0"
+          date_paiement: "optional|date"
+          periode: "optional|YYYY-MM"
+          statut_paiement: "optional|one_of[en_attente,paye,partiel,annule]"
+          mode_paiement: "optional|string"
+          reference: "optional|string|unique"
+      - method: GET
+        path: /api/cotisations/{cotisation}
+        auth: true
+        roles: [Presidente, Tresoriere]
+      - method: PATCH
+        path: /api/cotisations/{cotisation}
+        auth: true
+        roles: [Presidente, Tresoriere]
+      - method: DELETE
+        path: /api/cotisations/{cotisation}
+        auth: true
+        roles: [Presidente, Tresoriere]
+      - method: GET
+        path: /api/cotisations/summary
+        auth: true
+        roles: [Presidente, Tresoriere]
+        query:
+          month: "optional|YYYY-MM"
+          status: "optional|statut_paiement"
+      - method: GET
+        path: /api/cotisations/late
+        auth: true
+        roles: [Presidente, Tresoriere]
+        query:
+          month: "optional|YYYY-MM"
+      - method: POST
+        path: /api/cotisations/{id}/receipt
+        auth: true
+        roles: [Presidente, Tresoriere]
+      - method: GET
+        path: /api/cotisations/export/csv
+        auth: true
+        roles: [Presidente, Tresoriere]
+      - method: GET
+        path: /api/cotisations/export/pdf
+        auth: true
+        roles: [Presidente, Tresoriere]
+
+  - group: Evenements
+    endpoints:
+      - method: GET
+        path: /api/evenements
+        auth: true
+      - method: POST
+        path: /api/evenements
+        auth: true
+        body_content_type: multipart/form-data
+        body:
+          titre: "required|string"
+          description: "optional|nullable|string"
+          date_debut: "required|date"
+          date_fin: "optional|nullable|date>=date_debut"
+          lieu: "optional|nullable|string"
+          image: "required|file|image|max:5MB"
+          id_responsable: "optional|exists"
+      - method: GET
+        path: /api/evenements/{evenement}
+        auth: true
+      - method: PATCH
+        path: /api/evenements/{evenement}
+        auth: true
+      - method: DELETE
+        path: /api/evenements/{evenement}
+        auth: true
+      - method: GET
+        path: /api/evenements/upcoming
+        auth: true
+      - method: POST
+        path: /api/evenements/{id}/inscriptions
+        auth: true
+        body:
+          user_id: "optional|exists"
+      - method: DELETE
+        path: /api/evenements/{id}/inscriptions/{userId}
+        auth: true
+      - method: GET
+        path: /api/evenements/{id}/participants
+        auth: true
+      - method: PATCH
+        path: /api/evenements/{id}/participants/{userId}/presence
+        auth: true
+        roles: [Presidente, CommunityManager, Responsable]
+        body:
+          presence: "required|boolean"
+      - method: PATCH
+        path: /api/evenements/{id}/status
+        auth: true
+        roles: [Presidente, CommunityManager]
+        body:
+          statut: "required|one_of[pending,actif,refuse]"
+
+  - group: Annonces
+    endpoints:
+      - method: GET
+        path: /api/annonces
+        auth: true
+        query:
+          statut: "optional|string"
+          from: "optional|date"
+          to: "optional|date"
+      - method: POST
+        path: /api/annonces
+        auth: true
+        body:
+          titre: "required|string"
+          contenu: "required|string"
+          id_auteur: "optional|exists"
+          statut: "optional|string"
+      - method: GET
+        path: /api/annonces/{annonce}
+        auth: true
+      - method: PATCH
+        path: /api/annonces/{annonce}
+        auth: true
+      - method: DELETE
+        path: /api/annonces/{annonce}
+        auth: true
+
+  - group: Rapports
+    endpoints:
+      - method: GET
+        path: /api/rapports
+        auth: true
+        roles: [Presidente, Secretaire, Tresoriere]
+        query:
+          periode: "optional|string"
+          type_rapport: "optional|string"
+      - method: POST
+        path: /api/rapports
+        auth: true
+        roles: [Presidente, Secretaire, Tresoriere]
+      - method: GET
+        path: /api/rapports/{rapport}
+        auth: true
+        roles: [Presidente, Secretaire, Tresoriere]
+      - method: PATCH
+        path: /api/rapports/{rapport}
+        auth: true
+        roles: [Presidente, Secretaire, Tresoriere]
+      - method: DELETE
+        path: /api/rapports/{rapport}
+        auth: true
+        roles: [Presidente, Secretaire, Tresoriere]
+      - method: POST
+        path: /api/reports/monthly/generate
+        auth: true
+        roles: [Presidente, Secretaire, Tresoriere]
+        body:
+          month: "optional|YYYY-MM"
+          format: "optional|one_of[csv,pdf]"
+      - method: GET
+        path: /api/reports/{id}/download
+        auth: true
+        roles: [Presidente, Secretaire, Tresoriere]
+
+  - group: Exports
+    endpoints:
+      - method: GET
+        path: /api/exports/users.csv
+        auth: true
+        roles: [Presidente, Secretaire]
+      - method: GET
+        path: /api/exports/cotisations.csv
+        auth: true
+        roles: [Presidente, Tresoriere]
+      - method: GET
+        path: /api/exports/evenements.csv
+        auth: true
+        roles: [Presidente, CommunityManager]
+
+react_action_map:
+  login: "POST /api/login -> stocker token -> GET /api/me"
+  load_dashboard: "GET /api/dashboard/overview + /cotisations/monthly + /evenements/upcoming + /alerts"
+  manage_users: "GET /api/users -> PATCH /api/users/{id}/status -> PATCH /api/users/{id}/role"
+  manage_cotisations: "POST /api/cotisations -> GET /api/cotisations/summary -> POST /api/cotisations/{id}/receipt"
+  manage_events: "POST /api/evenements (form-data) -> PATCH /api/evenements/{id}/status -> POST /api/evenements/{id}/inscriptions"
+  communicate: "POST /api/annonces + POST /api/notifications"
+  reports_exports: "POST /api/reports/monthly/generate -> GET /api/reports/{id}/download + /api/exports/*.csv"
+
+llm_notes:
+  - "Tous les endpoints sauf /register et /login nécessitent Bearer token"
+  - "La plupart des erreurs de payload sont en 422 (pas 400)"
+  - "Paramètres route mixtes: certains endpoints utilisent {id}, d'autres {user}/{evenement}/{rapport}/{cotisation}/{annonce}"
+  - "Pour upload event image, utiliser multipart/form-data"

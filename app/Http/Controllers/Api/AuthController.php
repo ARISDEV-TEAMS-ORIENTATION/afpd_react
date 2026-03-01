@@ -19,9 +19,9 @@ class AuthController extends Controller
             'password' => 'required|min:6'
         ]);
 
-        $roleAdherent = Role::where('nom_role', 'Adherent')->first();
+        $roleAdherent = Role::whereIn('nom_role', ['Adherente', 'Adherent'])->first();
         if (!$roleAdherent) {
-            $roleAdherent = Role::create(['nom_role' => 'Adherent']);
+            $roleAdherent = Role::create(['nom_role' => 'Adherente']);
         }
 
         $user = User::create([

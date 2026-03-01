@@ -12,8 +12,15 @@ class Notification extends Model
     protected $fillable = [
         'message',
         'user_id',
-        'lu'
+        'lu',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'lu' => 'boolean',
+        ];
+    }
 
     public function user()
     {

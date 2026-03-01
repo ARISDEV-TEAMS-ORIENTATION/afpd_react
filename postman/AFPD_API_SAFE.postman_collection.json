@@ -1,0 +1,1126 @@
+{
+  "info": {
+    "name": "AFPD Backend API",
+    "description": "Collection Postman pour l'API AFPD (Laravel). Les routes protégées utilisent le bearer token stocké dans la variable `token`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "d0906c84-e45d-4f72-88e4-f0fff6d6d226"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": "1"
+    },
+    {
+      "key": "roleId",
+      "value": "1"
+    },
+    {
+      "key": "eventId",
+      "value": "1"
+    },
+    {
+      "key": "cotisationId",
+      "value": "1"
+    },
+    {
+      "key": "rapportId",
+      "value": "1"
+    },
+    {
+      "key": "annonceId",
+      "value": "1"
+    },
+    {
+      "key": "notificationId",
+      "value": "1"
+    },
+    {
+      "key": "tokenId",
+      "value": "1"
+    },
+    {
+      "key": "adminEmail",
+      "value": "test@example.com"
+    },
+    {
+      "key": "adminPassword",
+      "value": "password"
+    },
+    {
+      "key": "newUserEmail",
+      "value": "membre+1@example.com"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Membre\",\n  \"prenom\": \"Test\",\n  \"email\": \"{{newUserEmail}}\",\n  \"password\": \"password\",\n  \"telephone\": \"670000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/register"
+            }
+          }
+        },
+        {
+          "name": "Login (save token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.token) pm.collectionVariables.set('token', data.token);",
+                  "  if (data.user && data.user.id) pm.collectionVariables.set('userId', String(data.user.id));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/login"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/logout"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/me"
+            }
+          }
+        },
+        {
+          "name": "Update Me",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Admin\",\n  \"prenom\": \"Updated\",\n  \"telephone\": \"699000001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/me"
+            }
+          }
+        },
+        {
+          "name": "Update Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"{{adminPassword}}\",\n  \"password\": \"password\",\n  \"password_confirmation\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/me/password"
+            }
+          }
+        },
+        {
+          "name": "Revoke Token",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/me/tokens/{{tokenId}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Pending Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/pending-users"
+            }
+          }
+        },
+        {
+          "name": "Validate User",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/validate-user/{{userId}}"
+            }
+          }
+        },
+        {
+          "name": "Reject User",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/reject-user/{{userId}}"
+            }
+          }
+        },
+        {
+          "name": "Pending Events",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/pending-events"
+            }
+          }
+        },
+        {
+          "name": "Pending Events (alternate)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/evenements/pending"
+            }
+          }
+        },
+        {
+          "name": "Validate Event",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/validate-event/{{eventId}}"
+            }
+          }
+        },
+        {
+          "name": "Reject Event",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/reject-event/{{eventId}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roles",
+      "item": [
+        {
+          "name": "List Roles",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/roles"
+            }
+          }
+        },
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom_role\": \"Commissaire\",\n  \"description\": \"Role test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/roles"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/users?search=&role_id=&statut="
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Nouveau\",\n  \"prenom\": \"Membre\",\n  \"email\": \"membre+2@example.com\",\n  \"password\": \"password\",\n  \"telephone\": \"690000002\",\n  \"role_id\": {{roleId}},\n  \"statut\": \"pending\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users"
+            }
+          }
+        },
+        {
+          "name": "Show User",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}"
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telephone\": \"699123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}"
+            }
+          }
+        },
+        {
+          "name": "Delete User (soft)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}"
+            }
+          }
+        },
+        {
+          "name": "Update User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut\": \"actif\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}/status"
+            }
+          }
+        },
+        {
+          "name": "Update User Role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role_id\": {{roleId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}/role"
+            }
+          }
+        },
+        {
+          "name": "User Cotisations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}/cotisations"
+            }
+          }
+        },
+        {
+          "name": "User Participations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}/participations"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cotisations",
+      "item": [
+        {
+          "name": "List Cotisations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cotisations?user_id=&status=&from=&to="
+            }
+          }
+        },
+        {
+          "name": "Create Cotisation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": {{userId}},\n  \"montant\": 10000,\n  \"date_paiement\": \"2026-03-01 10:00:00\",\n  \"periode\": \"2026-03\",\n  \"statut_paiement\": \"paye\",\n  \"mode_paiement\": \"especes\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cotisations"
+            }
+          }
+        },
+        {
+          "name": "Show Cotisation",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cotisations/{{cotisationId}}"
+            }
+          }
+        },
+        {
+          "name": "Update Cotisation",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut_paiement\": \"partiel\",\n  \"montant\": 5000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cotisations/{{cotisationId}}"
+            }
+          }
+        },
+        {
+          "name": "Delete Cotisation",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/cotisations/{{cotisationId}}"
+            }
+          }
+        },
+        {
+          "name": "Summary",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cotisations/summary?month=2026-03&status=paye"
+            }
+          }
+        },
+        {
+          "name": "Late Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cotisations/late?month=2026-03"
+            }
+          }
+        },
+        {
+          "name": "Generate Receipt",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/cotisations/{{cotisationId}}/receipt"
+            }
+          }
+        },
+        {
+          "name": "Export Cotisations CSV",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cotisations/export/csv?month=2026-03"
+            }
+          }
+        },
+        {
+          "name": "Export Cotisations PDF",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cotisations/export/pdf?month=2026-03"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Evenements",
+      "item": [
+        {
+          "name": "List Events",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/evenements"
+            }
+          }
+        },
+        {
+          "name": "Create Event (multipart)",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "titre",
+                  "value": "Atelier Digital",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Formation pratique",
+                  "type": "text"
+                },
+                {
+                  "key": "date_debut",
+                  "value": "2026-03-20 09:00:00",
+                  "type": "text"
+                },
+                {
+                  "key": "date_fin",
+                  "value": "2026-03-20 13:00:00",
+                  "type": "text"
+                },
+                {
+                  "key": "lieu",
+                  "value": "Douala",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/evenements"
+            }
+          }
+        },
+        {
+          "name": "Show Event",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/evenements/{{eventId}}"
+            }
+          }
+        },
+        {
+          "name": "Update Event",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lieu\": \"Yaounde\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/evenements/{{eventId}}"
+            }
+          }
+        },
+        {
+          "name": "Delete Event",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/evenements/{{eventId}}"
+            }
+          }
+        },
+        {
+          "name": "Upcoming Events",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/evenements/upcoming"
+            }
+          }
+        },
+        {
+          "name": "Subscribe to Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": {{userId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/evenements/{{eventId}}/inscriptions"
+            }
+          }
+        },
+        {
+          "name": "Unsubscribe from Event",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/evenements/{{eventId}}/inscriptions/{{userId}}"
+            }
+          }
+        },
+        {
+          "name": "Event Participants",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/evenements/{{eventId}}/participants"
+            }
+          }
+        },
+        {
+          "name": "Mark Presence",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"presence\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/evenements/{{eventId}}/participants/{{userId}}/presence"
+            }
+          }
+        },
+        {
+          "name": "Update Event Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut\": \"actif\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/evenements/{{eventId}}/status"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Annonces",
+      "item": [
+        {
+          "name": "List Annonces",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/annonces?statut=publie&from=2026-03-01&to=2026-03-31"
+            }
+          }
+        },
+        {
+          "name": "Create Annonce",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titre\": \"Reunion mensuelle\",\n  \"contenu\": \"Rendez-vous samedi 10h\",\n  \"statut\": \"publie\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/annonces"
+            }
+          }
+        },
+        {
+          "name": "Show Annonce",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/annonces/{{annonceId}}"
+            }
+          }
+        },
+        {
+          "name": "Update Annonce",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contenu\": \"Mise a jour du message\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/annonces/{{annonceId}}"
+            }
+          }
+        },
+        {
+          "name": "Delete Annonce",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/annonces/{{annonceId}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications?lu=false"
+            }
+          }
+        },
+        {
+          "name": "Create Notifications",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Rappel de cotisation\",\n  \"user_ids\": [{{userId}}]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications"
+            }
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/{{notificationId}}/read"
+            }
+          }
+        },
+        {
+          "name": "Mark All Notifications Read",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/read-all"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Overview",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/overview?month=2026-03"
+            }
+          }
+        },
+        {
+          "name": "Cotisations Monthly",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/cotisations/monthly?months=6"
+            }
+          }
+        },
+        {
+          "name": "Upcoming Events",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/evenements/upcoming?limit=10"
+            }
+          }
+        },
+        {
+          "name": "Alerts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/alerts?month=2026-03"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rapports",
+      "item": [
+        {
+          "name": "List Rapports",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/rapports?periode=2026-03&type_rapport=mensuel"
+            }
+          }
+        },
+        {
+          "name": "Create Rapport",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type_rapport\": \"mensuel\",\n  \"periode\": \"2026-03\",\n  \"format\": \"csv\",\n  \"statut_generation\": \"termine\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rapports"
+            }
+          }
+        },
+        {
+          "name": "Show Rapport",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/rapports/{{rapportId}}"
+            }
+          }
+        },
+        {
+          "name": "Update Rapport",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut_generation\": \"termine\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rapports/{{rapportId}}"
+            }
+          }
+        },
+        {
+          "name": "Delete Rapport",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/rapports/{{rapportId}}"
+            }
+          }
+        },
+        {
+          "name": "Generate Monthly Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"month\": \"2026-03\",\n  \"format\": \"csv\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/monthly/generate"
+            }
+          }
+        },
+        {
+          "name": "Download Report File",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/{{rapportId}}/download"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Exports",
+      "item": [
+        {
+          "name": "Export Users CSV",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/exports/users.csv?search=&statut=&role_id="
+            }
+          }
+        },
+        {
+          "name": "Export Cotisations CSV",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/exports/cotisations.csv?user_id=&status=&from=&to="
+            }
+          }
+        },
+        {
+          "name": "Export Evenements CSV",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/exports/evenements.csv?statut=&from=&to="
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

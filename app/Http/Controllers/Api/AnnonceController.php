@@ -8,9 +8,23 @@ use Illuminate\Http\Request;
 
 class AnnonceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Annonce::all();
+        $query = Annonce::query();
+
+        if ($request->filled('statut')) {
+            $query->where('statut', $request->query('statut'));
+        }
+
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->query('from'));
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->query('to'));
+        }
+
+        return $query->latest()->get();
     }
 
     public function store(Request $request)
@@ -19,13 +33,13 @@ class AnnonceController extends Controller
             'titre' => 'required|string',
             'contenu' => 'required|string',
             'id_auteur' => 'nullable|exists:users,id',
-            'statut' => 'nullable|string'
+            'statut' => 'nullable|string',
         ]);
 
         $auteurId = $request->user()?->id ?? ($validated['id_auteur'] ?? null);
         if (!$auteurId) {
             return response()->json([
-                'message' => 'Auteur manquant'
+                'message' => 'Auteur manquant',
             ], 422);
         }
 
@@ -33,7 +47,7 @@ class AnnonceController extends Controller
             'titre' => $validated['titre'],
             'contenu' => $validated['contenu'],
             'id_auteur' => $auteurId,
-            'statut' => $validated['statut'] ?? 'publie'
+            'statut' => $validated['statut'] ?? 'publie',
         ]);
 
         return response()->json($annonce, 201);
@@ -51,7 +65,7 @@ class AnnonceController extends Controller
         $validated = $request->validate([
             'titre' => 'sometimes|required|string',
             'contenu' => 'sometimes|required|string',
-            'statut' => 'nullable|string'
+            'statut' => 'nullable|string',
         ]);
 
         $annonce->update($validated);
@@ -64,7 +78,7 @@ class AnnonceController extends Controller
         Annonce::destroy($id);
 
         return response()->json([
-            'message' => 'Annonce supprimée'
+            'message' => 'Annonce supprimée',
         ]);
     }
 }

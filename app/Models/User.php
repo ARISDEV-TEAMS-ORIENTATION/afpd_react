@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -11,72 +11,76 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-    'nom',
-    'prenom',
-    'email',
-    'password',
-    'telephone',
-    'date_inscription',
-    'statut',
-    'role_id'
-];
+        'nom',
+        'prenom',
+        'email',
+        'password',
+        'telephone',
+        'date_inscription',
+        'statut',
+        'role_id',
+    ];
 
-protected $hidden = [
-    'password',
-    'remember_token',
-];
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
-     // Événements organisés
     public function evenements()
     {
         return $this->hasMany(Evenement::class, 'id_responsable');
     }
 
-    // Annonces publiées
+    public function participations()
+    {
+        return $this->belongsToMany(Evenement::class, 'inscription_evenements')
+            ->withPivot(['presence', 'date_inscription', 'date_presence', 'statut_inscription'])
+            ->withTimestamps();
+    }
+
     public function annonces()
     {
         return $this->hasMany(Annonce::class, 'id_auteur');
     }
 
-    // Rapports créés
     public function rapports()
     {
         return $this->hasMany(Rapport::class, 'id_createur');
     }
 
-    // Notifications reçues
     public function notifications()
     {
         return $this->hasMany(Notification::class);
     }
 
-    // Journal
     public function journalActivites()
     {
         return $this->hasMany(JournalActivite::class);
     }
-    public function role()
-{
-    return $this->belongsTo(Role::class);
-}
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    public function cotisations()
+    {
+        return $this->hasMany(Cotisation::class);
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function exportsGenerated()
+    {
+        return $this->hasMany(Export::class, 'generated_by');
+    }
+
     protected function casts(): array
     {
         return [
             'password' => 'hashed',
+            'date_inscription' => 'datetime',
         ];
     }
 }

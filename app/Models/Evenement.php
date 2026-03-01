@@ -21,12 +21,20 @@ class Evenement extends Model
         'lieu',
         'image',
         'id_responsable',
-        'statut'
+        'statut',
     ];
 
     protected $appends = [
-        'image_url'
+        'image_url',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'date_debut' => 'datetime',
+            'date_fin' => 'datetime',
+        ];
+    }
 
     public function responsable()
     {
@@ -35,10 +43,9 @@ class Evenement extends Model
 
     public function participants()
     {
-        return $this->belongsToMany(
-            User::class,
-            'inscription_evenements'
-        )->withPivot('presence')->withTimestamps();
+        return $this->belongsToMany(User::class, 'inscription_evenements')
+            ->withPivot(['presence', 'date_inscription', 'date_presence', 'statut_inscription'])
+            ->withTimestamps();
     }
 
     public function getImageUrlAttribute(): ?string
