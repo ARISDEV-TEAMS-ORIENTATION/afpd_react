@@ -24,6 +24,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/me', [ProfileController::class, 'update']);
     Route::patch('/me/password', [ProfileController::class, 'updatePassword']);
     Route::delete('/me/tokens/{tokenId}', [ProfileController::class, 'revokeToken']);
+    Route::patch('/me/avatar', [ProfileController::class, 'updateAvatar']);
+    Route::delete('/me/avatar', [ProfileController::class, 'deleteAvatar']);
+    Route::get('/me/preferences', [ProfileController::class, 'preferences']);
+    Route::patch('/me/preferences', [ProfileController::class, 'updatePreferences']);
+    Route::patch('/me/privacy', [ProfileController::class, 'updatePrivacy']);
 
     Route::get('/dashboard/overview', [DashboardController::class, 'overview']);
     Route::get('/dashboard/cotisations/monthly', [DashboardController::class, 'cotisationsMonthly']);

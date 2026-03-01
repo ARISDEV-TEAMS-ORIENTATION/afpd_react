@@ -19,6 +19,15 @@ class User extends Authenticatable
         'email',
         'password',
         'telephone',
+        'avatar_path',
+        'theme',
+        'language',
+        'timezone',
+        'email_notifications',
+        'push_notifications',
+        'show_phone',
+        'show_email',
+        'profile_visibility',
         'date_inscription',
         'statut',
         'role_id',
@@ -27,6 +36,10 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    protected $appends = [
+        'avatar_url',
     ];
 
     public function evenements()
@@ -81,6 +94,30 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
             'date_inscription' => 'datetime',
+            'email_notifications' => 'boolean',
+            'push_notifications' => 'boolean',
+            'show_phone' => 'boolean',
+            'show_email' => 'boolean',
         ];
+    }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (!$this->avatar_path) {
+            return null;
+        }
+
+        if (str_starts_with($this->avatar_path, 'http://') || str_starts_with($this->avatar_path, 'https://')) {
+            return $this->avatar_path;
+        }
+
+        $relativeUrl = '/storage/' . ltrim($this->avatar_path, '/');
+        $request = request();
+
+        if ($request) {
+            return rtrim($request->getSchemeAndHttpHost(), '/') . $relativeUrl;
+        }
+
+        return $relativeUrl;
     }
 }
