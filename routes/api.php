@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me/preferences', [ProfileController::class, 'preferences']);
     Route::patch('/me/preferences', [ProfileController::class, 'updatePreferences']);
     Route::patch('/me/privacy', [ProfileController::class, 'updatePrivacy']);
+    Route::get('/me/cotisations', [CotisationController::class, 'myPayments']);
 
     Route::get('/dashboard/overview', [DashboardController::class, 'overview']);
     Route::get('/dashboard/cotisations/monthly', [DashboardController::class, 'cotisationsMonthly']);

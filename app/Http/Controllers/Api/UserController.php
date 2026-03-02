@@ -51,9 +51,23 @@ class UserController extends Controller
             'statut' => 'nullable|string|max:50',
         ]);
 
-        $roleId = $validated['role_id'] ?? Role::whereIn('nom_role', ['Adherente', 'Adherent'])->value('id');
-        if (!$roleId) {
-            $roleId = Role::create(['nom_role' => 'Adherente'])->id;
+        $role = isset($validated['role_id'])
+            ? Role::find($validated['role_id'])
+            : Role::whereIn('nom_role', ['Adherente', 'Adherent'])->first();
+
+        if (!$role) {
+            $role = Role::create(['nom_role' => 'Adherente']);
+        }
+
+        $creatorRoleName = mb_strtolower((string) $request->user()?->role?->nom_role);
+        $targetRoleName = mb_strtolower((string) $role->nom_role);
+
+        $isPresidenteCreator = $creatorRoleName === 'Presidente';
+        $isSimpleUserRole = in_array($targetRoleName, ['adherente', 'adherent'], true);
+
+        $computedStatus = $validated['statut'] ?? 'pending';
+        if ($isPresidenteCreator && $isSimpleUserRole) {
+            $computedStatus = 'actif';
         }
 
         $user = User::create([
@@ -62,8 +76,8 @@ class UserController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'telephone' => $validated['telephone'] ?? null,
-            'role_id' => $roleId,
-            'statut' => $validated['statut'] ?? 'pending',
+            'role_id' => $role->id,
+            'statut' => $computedStatus,
             'date_inscription' => now(),
         ]);
 

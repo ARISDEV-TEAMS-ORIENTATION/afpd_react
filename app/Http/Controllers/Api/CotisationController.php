@@ -12,6 +12,29 @@ use Illuminate\Validation\Rule;
 
 class CotisationController extends Controller
 {
+    public function myPayments(Request $request)
+    {
+        $query = Cotisation::query()
+            ->with('user')
+            ->where('user_id', $request->user()->id);
+
+        if ($request->filled('status')) {
+            $query->where('statut_paiement', $request->query('status'));
+        }
+
+        if ($request->filled('from')) {
+            $query->whereDate('date_paiement', '>=', $request->query('from'));
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('date_paiement', '<=', $request->query('to'));
+        }
+
+        return response()->json(
+            $query->latest()->get()
+        );
+    }
+
     public function index(Request $request)
     {
         return response()->json(

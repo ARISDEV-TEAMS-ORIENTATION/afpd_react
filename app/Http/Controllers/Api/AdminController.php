@@ -25,12 +25,12 @@ class AdminController extends Controller
     // REFUSER
     public function rejectUser($id)
     {
-        $user = User::findOrFail($id);
+        $user = User::withTrashed()->findOrFail($id);
 
-        $user->delete();
+        $user->forceDelete();
 
         return response()->json([
-            'message' => 'Utilisateur supprimé'
+            'message' => 'Utilisateur supprimé définitivement'
         ]);
     }
 

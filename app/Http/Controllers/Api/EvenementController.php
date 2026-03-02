@@ -13,33 +13,43 @@ class EvenementController extends Controller
 {
     public function pendingForAdmin()
     {
-        return Evenement::with('responsable')
+        $events = Evenement::with('responsable')
             ->where('statut', Evenement::STATUT_PENDING)
             ->latest()
             ->get();
+
+        return $this->enrichEventsWithSubscription(
+            $events,
+            request()->user()?->id
+        );
     }
 
     public function index(Request $request)
     {
+        $query = Evenement::with('responsable')->latest();
+
         if ($this->isCommunityManager($request)) {
-            return Evenement::with('responsable')->latest()->get();
+            $events = $query->get();
+        } else {
+            $events = $query
+                ->where('statut', Evenement::STATUT_ACTIF)
+                ->get();
         }
 
-        return Evenement::with('responsable')
-            ->where('statut', Evenement::STATUT_ACTIF)
-            ->latest()
-            ->get();
+        return $this->enrichEventsWithSubscription($events, $request->user()?->id);
     }
 
     public function upcoming()
     {
+        $events = Evenement::query()
+            ->with('responsable')
+            ->where('statut', Evenement::STATUT_ACTIF)
+            ->where('date_debut', '>=', now())
+            ->orderBy('date_debut')
+            ->get();
+
         return response()->json(
-            Evenement::query()
-                ->with('responsable')
-                ->where('statut', Evenement::STATUT_ACTIF)
-                ->where('date_debut', '>=', now())
-                ->orderBy('date_debut')
-                ->get()
+            $this->enrichEventsWithSubscription($events, request()->user()?->id)
         );
     }
 
@@ -90,7 +100,7 @@ class EvenementController extends Controller
         }
 
         if ($this->isCommunityManager($request)) {
-            return $event;
+            return $this->enrichEventWithSubscription($event, $request->user()?->id);
         }
 
         if ($event->statut !== Evenement::STATUT_ACTIF) {
@@ -99,7 +109,7 @@ class EvenementController extends Controller
             ], 404);
         }
 
-        return $event;
+        return $this->enrichEventWithSubscription($event, $request->user()?->id);
     }
 
     public function update(Request $request, $id)
@@ -279,5 +289,59 @@ class EvenementController extends Controller
             ['Presidente', 'CommunityManager', 'Responsable'],
             true
         );
+    }
+
+    private function enrichEventsWithSubscription($events, ?int $userId)
+    {
+        $eventIds = $events->pluck('id')->all();
+
+        if (count($eventIds) === 0) {
+            return $events;
+        }
+
+        $participantsCount = InscriptionEvenement::query()
+            ->selectRaw('evenement_id, COUNT(*) as total')
+            ->whereIn('evenement_id', $eventIds)
+            ->groupBy('evenement_id')
+            ->pluck('total', 'evenement_id');
+
+        $inscriptions = [];
+        if ($userId) {
+            $inscriptions = InscriptionEvenement::query()
+                ->whereIn('evenement_id', $eventIds)
+                ->where('user_id', $userId)
+                ->pluck('evenement_id')
+                ->flip()
+                ->all();
+        }
+
+        foreach ($events as $event) {
+            $event->setAttribute('participants_count', (int) ($participantsCount[$event->id] ?? 0));
+            $event->setAttribute('is_inscrit', isset($inscriptions[$event->id]));
+        }
+
+        return $events;
+    }
+
+    private function enrichEventWithSubscription(Evenement $event, ?int $userId): Evenement
+    {
+        $event->setAttribute(
+            'participants_count',
+            InscriptionEvenement::query()
+                ->where('evenement_id', $event->id)
+                ->count()
+        );
+
+        $isInscrit = false;
+        if ($userId) {
+            $isInscrit = InscriptionEvenement::query()
+                ->where('evenement_id', $event->id)
+                ->where('user_id', $userId)
+                ->exists();
+        }
+
+        $event->setAttribute('is_inscrit', $isInscrit);
+
+        return $event;
     }
 }

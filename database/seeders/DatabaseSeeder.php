@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        // $this->call(RoleSeeder::class);
+        $this->call(RoleSeeder::class);
 
         $roleId = Role::where('nom_role', 'Presidente')->value('id')
             ?? Role::first()?->id
@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'nom' => 'Admin',
             'password' => 'password',
-            'email' => 'test@example.com',
+            'email' => 'admin@example.com',
             'role_id' => $roleId,
         ]);
     }

@@ -84,24 +84,69 @@ route_groups:
       - method: GET
         path: /api/me
         auth: true
+        description: "Récupérer le profil connecté"
       - method: PATCH
         path: /api/me
         auth: true
+        description: "Mettre à jour les infos de base du profil"
         body:
           nom: "optional|required|string"
           prenom: "optional|nullable|string"
           telephone: "optional|nullable|string"
           email: "optional|required|email|unique:users,email,<current_user_id>"
       - method: PATCH
+        path: /api/me/avatar
+        auth: true
+        description: "Uploader ou remplacer l'avatar utilisateur"
+        body_content_type: multipart/form-data
+        body:
+          avatar: "required|file|image|max:2048KB"
+      - method: DELETE
+        path: /api/me/avatar
+        auth: true
+        description: "Supprimer l'avatar actuel"
+      - method: PATCH
         path: /api/me/password
         auth: true
+        description: "Modifier le mot de passe connecté"
         body:
           current_password: "required|string"
           password: "required|string|min:6|confirmed"
           password_confirmation: "required|string"
+      - method: GET
+        path: /api/me/preferences
+        auth: true
+        description: "Lire les préférences UI du membre"
+      - method: PATCH
+        path: /api/me/preferences
+        auth: true
+        description: "Mettre à jour les préférences UI"
+        body:
+          theme: "optional|one_of[light,dark,system]"
+          language: "optional|string|max:10"
+          timezone: "optional|timezone"
+          email_notifications: "optional|boolean"
+          push_notifications: "optional|boolean"
+      - method: PATCH
+        path: /api/me/privacy
+        auth: true
+        description: "Mettre à jour les réglages de confidentialité"
+        body:
+          show_phone: "optional|boolean"
+          show_email: "optional|boolean"
+          profile_visibility: "optional|one_of[public,members,private]"
+      - method: GET
+        path: /api/me/cotisations
+        auth: true
+        description: "Voir les paiements du membre connecté"
+        query:
+          status: "optional|one_of[en_attente,paye,partiel,annule]"
+          from: "optional|date"
+          to: "optional|date"
       - method: DELETE
         path: /api/me/tokens/{tokenId}
         auth: true
+        description: "Révoquer un token/sesssion"
         path_params:
           tokenId: int
 
