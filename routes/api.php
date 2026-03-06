@@ -98,7 +98,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/roles', [RoleController::class, 'store'])->middleware('role:Presidente');
 
     Route::apiResource('users', UserController::class)
-        ->middleware('role:Presidente,Secretaire,CommunityManager');
+        ->middleware('role:Presidente,Secretaire,CommunityManager,Tresoriere');
 
     Route::apiResource('cotisations', CotisationController::class)
         ->middleware('role:Presidente,Tresoriere');
